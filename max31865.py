@@ -75,7 +75,7 @@ class max31865(object):
 		#
 
 		#one shot
-		self.writeRegister(0, 0xB2)
+		self.writeRegister(0, 0x32)
 
 		# conversion time is less than 100ms
 		time.sleep(.1) #give it 100ms for conversion
@@ -84,22 +84,24 @@ class max31865(object):
 		out = self.readRegisters(0,8)
 
 		conf_reg = out[0]
-		print "config register byte: %x" % conf_reg
+		print (f"config register byte: {conf_reg}")
 
 		[rtd_msb, rtd_lsb] = [out[1], out[2]]
+		print(f"RTD: {rtd_msb:2x} {rtd_lsb:2x}")
 		rtd_ADC_Code = (( rtd_msb << 8 ) | rtd_lsb ) >> 1
 			
 		temp_C = self.calcPT100Temp(rtd_ADC_Code)
 
 		[hft_msb, hft_lsb] = [out[3], out[4]]
 		hft = (( hft_msb << 8 ) | hft_lsb ) >> 1
-		print "high fault threshold: %d" % hft
+		print(f"high fault threshold: {hft}")
 
 		[lft_msb, lft_lsb] = [out[5], out[6]]
 		lft = (( lft_msb << 8 ) | lft_lsb ) >> 1
-		print "low fault threshold: %d" % lft
+		print(f"low fault threshold: {lft}") 
 
 		status = out[7]
+		print(f"falut status: {status}")
 		#
 		# 10 Mohm resistor is on breakout board to help
 		# detect cable faults
@@ -167,16 +169,16 @@ class max31865(object):
 		return byte	
 	
 	def calcPT100Temp(self, RTD_ADC_Code):
-		R_REF = 400.0 # Reference Resistor
+		R_REF = 4300.0 # Reference Resistor
 		Res0 = 100.0; # Resistance at 0 degC for 400ohm R_Ref
 		a = .00390830
 		b = -.000000577500
 		# c = -4.18301e-12 # for -200 <= T <= 0 (degC)
 		c = -0.00000000000418301
 		# c = 0 # for 0 <= T <= 850 (degC)
-		print "RTD ADC Code: %d" % RTD_ADC_Code
+		print(f"RTD ADC Code: {RTD_ADC_Code}")
 		Res_RTD = (RTD_ADC_Code * R_REF) / 32768.0 # PT100 Resistance
-		print "PT100 Resistance: %f ohms" % Res_RTD
+		print (f"PT100 Resistance: {Res_RTD} ohms")
 		#
 		# Callendar-Van Dusen equation
 		# Res_RTD = Res0 * (1 + a*T + b*T**2 + c*(T-100)*T**3)
@@ -192,8 +194,8 @@ class max31865(object):
 		# removing numpy.roots will greatly speed things up
 		#temp_C_numpy = numpy.roots([c*Res0, -c*Res0*100, b*Res0, a*Res0, (Res0 - Res_RTD)])
 		#temp_C_numpy = abs(temp_C_numpy[-1])
-		print "Straight Line Approx. Temp: %f degC" % temp_C_line
-		print "Callendar-Van Dusen Temp (degC > 0): %f degC" % temp_C
+		print(f"Straight Line Approx. Temp: {temp_C_line} degC")
+		print(f"Callendar-Van Dusen Temp (degC > 0): {temp_C} degC")
 		#print "Solving Full Callendar-Van Dusen using numpy: %f" %  temp_C_numpy
 		if (temp_C < 0): #use straight line approximation if less than 0
 			# Can also use python lib numpy to solve cubic
