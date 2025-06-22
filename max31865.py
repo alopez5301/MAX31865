@@ -170,7 +170,7 @@ class max31865(object):
 	
 	def calcPT100Temp(self, RTD_ADC_Code):
 		R_REF = 4300.0 # Reference Resistor
-		Res0 = 100.0; # Resistance at 0 degC for 400ohm R_Ref
+		Res0 = 1000.0; # Resistance at 0 degC for 400ohm R_Ref
 		a = .00390830
 		b = -.000000577500
 		# c = -4.18301e-12 # for -200 <= T <= 0 (degC)
